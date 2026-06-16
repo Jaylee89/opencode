@@ -124,6 +124,69 @@ If you're interested in contributing to OpenCode, please read our [contributing 
 
 If you are working on a project that's related to OpenCode and is using "opencode" as part of its name, for example "opencode-dashboard" or "opencode-mobile", please add a note to your README to clarify that it is not built by the OpenCode team and is not affiliated with us in any way.
 
+### Fake github copilot
+
+`User-Agent`
+
+```
+{
+  "env": {                         
+    "OPENCODE_COPILOT_USER_AGENT": "GitHubCopilotChat/0.23.0 (vscode/1.98.0; darwin)",
+    "OPENCODE_COPILOT_EXTRA_HEADERS": "{\"Copilot-Integration-Id\":\"vscode-chat\",\"Editor-Version\":\"1.98.0\",\"Editor-Plugin-Version\":\"1.250.0\"}"
+  }
+}
+```
+
+### capture request info from 
+
+```
+// capture-copilot.js
+const https = require('https');
+
+// Hook into the native HTTPS request method
+const originalRequest = https.request;
+
+https.request = function (options, callback) {
+    // Only capture target traffic bound for GitHub Copilot endpoints
+    if (options.host && options.host.includes('githubcopilot.com')) {
+        console.log('\n==================================================');
+        console.log(`[COPILOT REQUEST] ${options.method} https://${options.host}${options.path}`);
+        console.log('==================================================');
+        console.log('HEADERS:', JSON.stringify(options.headers, null, 2));
+
+        // Intercept and print the payload request body
+        const originalWrite = process.stdout.write;
+        let requestBody = '';
+
+        const req = originalRequest.call(this, options, callback);
+        
+        const originalReqWrite = req.write;
+        req.write = function (chunk, encoding, cb) {
+            requestBody += chunk.toString();
+            return originalReqWrite.call(this, chunk, encoding, cb);
+        };
+
+        const originalReqEnd = req.end;
+        req.end = function (chunk, encoding, cb) {
+            if (chunk) requestBody += chunk.toString();
+            console.log('BODY PAYLOAD:\n', requestBody);
+            return originalReqEnd.call(this, chunk, encoding, cb);
+        };
+
+        return req;
+    }
+
+    // Pass-through standard extension traffic natively
+    return originalRequest.apply(this, arguments);
+};
+
+console.log("Copilot Chat Interceptor script successfully injected!");
+
+
+NODE_OPTIONS="--require /path/to/capture-copilot.js" code
+
+```
+
 ---
 
 **Join our community** [Discord](https://discord.gg/opencode) | [X.com](https://x.com/opencode)
