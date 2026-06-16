@@ -137,6 +137,11 @@ If you are working on a project that's related to OpenCode and is using "opencod
 }
 ```
 
+```
+// sample
+curl -H "Host: api.individual.githubcopilot.com:443" -H "Proxy-Connection: keep-alive" -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.110.1 Chrome/142.0.7444.265 Electron/39.6.0 Safari/537.36"
+```
+
 ### capture request info from 
 
 ```
